@@ -8,7 +8,7 @@ namespace KruispuntSimulatieController
 {
     class SetAutomobileRouteStateModel
     {
-       public int[] routeId { get; set; }
-       public string[] state { get; set; }
+       public int routeId { get; set; }
+       public string state { get; set; }
     }
 }

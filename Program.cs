@@ -1,9 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using KruispuntSimulatieController.Parsers;
+using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WebSocketSharp;
 
 namespace KruispuntSimulatieController
@@ -18,7 +15,6 @@ namespace KruispuntSimulatieController
             using (WebSocket websocket = new WebSocket(address))
             {
                 //Maak connectie met broker
-                websocket.OnMessage += Websocket_OnMessage;
                 websocket.Connect();
 
                 //Connect Controller
@@ -27,7 +23,7 @@ namespace KruispuntSimulatieController
                     eventType = "CONNECT_CONTROLLER",
                     data = new ControllerConnectDataModel()
                     {
-                        sessionName = "MoffelMaffia",
+                        sessionName = "discordtest12",
                         sessionVersion = 1,
                         discardParseErrors = false,
                         discardEventTypeErrors = false,
@@ -41,6 +37,7 @@ namespace KruispuntSimulatieController
 
                 Console.WriteLine();
 
+                //Check of er pogingen worden gedaan voor connectie maken
                 if (websocket.IsAlive)
                 {
                     Console.WriteLine("Tried making connection");
@@ -54,22 +51,27 @@ namespace KruispuntSimulatieController
                     eventType = "SET_AUTOMOBILE_ROUTE_STATE",
                     data = new SetAutomobileRouteStateModel()
                     {
-                        routeId = new int[]{ 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 15},
-                        state = new string[] { "GREEN", "ORANGE", "RED" }
+                        routeId = 1,
+                        state = "GREEN"
                     }
                 };
                 string strSetAutomobileRouteState = JsonConvert.SerializeObject(jSONSetAutombileRouteState);
-                Console.WriteLine(strSetAutomobileRouteState);
                 websocket.Send(strSetAutomobileRouteState);
+                Console.WriteLine(strSetAutomobileRouteState);
+
+                //Bij inkomende berichten voer deze taken uit
+                websocket.OnMessage += (sender, e) =>
+                {
+                    EntityEnteredZoneModel entityEnteredZoneModel = JsonConvert.DeserializeObject<EntityEnteredZoneModel>(e.Data);
+                    Console.WriteLine();
+                    Console.WriteLine(entityEnteredZoneModel.eventType);
+                    Console.WriteLine(entityEnteredZoneModel.data.routeId);
+                    Console.WriteLine(entityEnteredZoneModel.data.sensorId);
+                };
 
                 Console.ReadKey();
             }
             
-        }
-
-        private static void Websocket_OnMessage(object sender, MessageEventArgs e)
-        {
-            Console.WriteLine("Broker zegt: " + e.Data);
         }
     }
 }

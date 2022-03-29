@@ -10,4 +10,10 @@
     <PackageReference Include="WebSocketSharp-NonPreRelease" Version="1.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ConnectMetBroker\" />
+    <Folder Include="Parsers\EntityEnteredZone\" />
+    <Folder Include="SetAutombileRouteState\" />
+  </ItemGroup>
+
 </Project>
