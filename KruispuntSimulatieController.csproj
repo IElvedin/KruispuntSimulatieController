@@ -6,14 +6,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="WebSocketSharp-NonPreRelease" Version="1.0.0" />
+    <Compile Remove="ConnectMetBroker\**" />
+    <Compile Remove="Parsers\**" />
+    <Compile Remove="SetAutombileRouteState\**" />
+    <EmbeddedResource Remove="ConnectMetBroker\**" />
+    <EmbeddedResource Remove="Parsers\**" />
+    <EmbeddedResource Remove="SetAutombileRouteState\**" />
+    <None Remove="ConnectMetBroker\**" />
+    <None Remove="Parsers\**" />
+    <None Remove="SetAutombileRouteState\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ConnectMetBroker\" />
-    <Folder Include="Parsers\EntityEnteredZone\" />
-    <Folder Include="SetAutombileRouteState\" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="WebSocketSharp-NonPreRelease" Version="1.0.0" />
   </ItemGroup>
 
 </Project>
