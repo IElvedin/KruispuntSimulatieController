@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KruispuntSimulatieController.Parsers.EntityEnteredZone
+namespace KruispuntSimulatieController.EntityEnteredZone
 {
-    class EntityEnteredZoneModelData
+    public class EntityEnteredZoneJSONModelData
     {
         public int routeId { get; set; }
         public int sensorId { get; set; }

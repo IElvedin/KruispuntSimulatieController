@@ -8,13 +8,10 @@
   <ItemGroup>
     <Compile Remove="ConnectMetBroker\**" />
     <Compile Remove="Parsers\**" />
-    <Compile Remove="SetAutombileRouteState\**" />
     <EmbeddedResource Remove="ConnectMetBroker\**" />
     <EmbeddedResource Remove="Parsers\**" />
-    <EmbeddedResource Remove="SetAutombileRouteState\**" />
     <None Remove="ConnectMetBroker\**" />
     <None Remove="Parsers\**" />
-    <None Remove="SetAutombileRouteState\**" />
   </ItemGroup>
 
   <ItemGroup>

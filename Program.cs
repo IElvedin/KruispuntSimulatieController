@@ -1,6 +1,11 @@
-﻿using KruispuntSimulatieController.Parsers;
+﻿using KruispuntSimulatieController.ConnectController;
+using KruispuntSimulatieController.EntityEnteredZone;
+using KruispuntSimulatieController.SetAutombileRouteState;
+using KruispuntSimulatieController.SetCyclistRouteState;
+using KruispuntSimulatieController.SetPedestrianRouteState;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using WebSocketSharp;
 
 namespace KruispuntSimulatieController
@@ -11,6 +16,7 @@ namespace KruispuntSimulatieController
 
         static void Main(string[] args)
         {
+            int sleeperTime = 10000;
             //Maakt connectie met broker
             using (WebSocket websocket = new WebSocket(address))
             {
@@ -18,12 +24,12 @@ namespace KruispuntSimulatieController
                 websocket.Connect();
 
                 //Connect Controller
-                JSONControllerConnectData jSONMessageDataModel = new JSONControllerConnectData()
+                ControllerConnectJSONModel jSONMessageDataModel = new ControllerConnectJSONModel()
                 {
                     eventType = "CONNECT_CONTROLLER",
-                    data = new ControllerConnectDataModel()
+                    data = new ControllerConnectJSONModelData()
                     {
-                        sessionName = "discordtest12",
+                        sessionName = "KFC",
                         sessionVersion = 1,
                         discardParseErrors = false,
                         discardEventTypeErrors = false,
@@ -45,24 +51,222 @@ namespace KruispuntSimulatieController
 
                 Console.WriteLine();
 
-                //Set Automobile Route State
-                JSONSetAutombileRouteState jSONSetAutombileRouteState = new JSONSetAutombileRouteState()
+                int[] routeSize = {1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 15, 21, 22, 23, 24, 31, 32, 33, 34, 35, 36, 37, 38};
+
+                foreach (int route in routeSize)
                 {
-                    eventType = "SET_AUTOMOBILE_ROUTE_STATE",
-                    data = new SetAutomobileRouteStateModel()
+                    if (route == 1 || route == 2 || route == 3 || route == 4 || route == 5 || route == 7 || route == 8 || route == 9 || route == 10 || route == 11 || route == 12 || route == 15)
                     {
-                        routeId = 1,
-                        state = "GREEN"
+                        //Set Automobile Route State
+                        SetAutomobileRouteStateJSONModel SetAutombileRouteStateJSONModel = new SetAutomobileRouteStateJSONModel()
+                        {
+                            eventType = "SET_AUTOMOBILE_ROUTE_STATE",
+                            data = new SetAutomobileRouteStateJSONModelData()
+                            {
+                                routeId = route,
+                                state = "GREEN"
+                            }
+                        };
+                        string strSetAutomobileRouteState = JsonConvert.SerializeObject(SetAutombileRouteStateJSONModel);
+                        websocket.Send(strSetAutomobileRouteState);
+                        Console.WriteLine(strSetAutomobileRouteState);
                     }
-                };
-                string strSetAutomobileRouteState = JsonConvert.SerializeObject(jSONSetAutombileRouteState);
-                websocket.Send(strSetAutomobileRouteState);
-                Console.WriteLine(strSetAutomobileRouteState);
+                    if (route == 21 || route == 22 || route == 23 || route == 24)
+                    {
+                        SetCyclistRouteStateJSONModel setCyclistRouteStateJSONModel = new SetCyclistRouteStateJSONModel()
+                        {
+                            eventType = "SET_CYCLIST_ROUTE_STATE",
+                            data = new SetCyclistRouteStateJSONModelJSONModelData()
+                            {
+                                routeId = route,
+                                state = "GREEN"
+                            }
+                        };
+                        string strSetCyclistRouteStateJSONModel = JsonConvert.SerializeObject(setCyclistRouteStateJSONModel);
+                        websocket.Send(strSetCyclistRouteStateJSONModel);
+                        Console.WriteLine(strSetCyclistRouteStateJSONModel);
+                    }
+                    if (route == 31 || route == 32 || route == 33 || route == 34 || route == 35 || route == 36 || route == 37 || route == 38)
+                    {
+                        SetPedestrianRouteStateJSONModel setPedestrianRouteStateJSONModel = new SetPedestrianRouteStateJSONModel()
+                        {
+                            eventType = "SET_PEDESTRIAN_ROUTE_STATE",
+                            data = new SetPedestrianRouteStateJSONModelData()
+                            {
+                                routeId = route,
+                                state = "GREEN"
+                            }
+                        };
+                        string strSetPedestrianRouteStateJSONModel = JsonConvert.SerializeObject(setPedestrianRouteStateJSONModel);
+                        websocket.Send(strSetPedestrianRouteStateJSONModel);
+                        Console.WriteLine(strSetPedestrianRouteStateJSONModel);
+                    }
+                }
+
+                System.Threading.Thread.Sleep(sleeperTime);
+
+                foreach (int route in routeSize)
+                {
+                    if (route == 1 || route == 2 || route == 3 || route == 4 || route == 5 || route == 7 || route == 8 || route == 9 || route == 10 || route == 11 || route == 12 || route == 15)
+                    {
+                        //Set Automobile Route State
+                        SetAutomobileRouteStateJSONModel SetAutombileRouteStateJSONModel = new SetAutomobileRouteStateJSONModel()
+                        {
+                            eventType = "SET_AUTOMOBILE_ROUTE_STATE",
+                            data = new SetAutomobileRouteStateJSONModelData()
+                            {
+                                routeId = route,
+                                state = "ORANGE"
+                            }
+                        };
+                        string strSetAutomobileRouteState = JsonConvert.SerializeObject(SetAutombileRouteStateJSONModel);
+                        websocket.Send(strSetAutomobileRouteState);
+                        Console.WriteLine(strSetAutomobileRouteState);
+                    }
+                    if (route == 21 || route == 22 || route == 23 || route == 24)
+                    {
+                        SetCyclistRouteStateJSONModel setCyclistRouteStateJSONModel = new SetCyclistRouteStateJSONModel()
+                        {
+                            eventType = "SET_CYCLIST_ROUTE_STATE",
+                            data = new SetCyclistRouteStateJSONModelJSONModelData()
+                            {
+                                routeId = route,
+                                state = "ORANGE"
+                            }
+                        };
+                        string strSetCyclistRouteStateJSONModel = JsonConvert.SerializeObject(setCyclistRouteStateJSONModel);
+                        websocket.Send(strSetCyclistRouteStateJSONModel);
+                        Console.WriteLine(strSetCyclistRouteStateJSONModel);
+                    }
+                    if (route == 31 || route == 32 || route == 33 || route == 34 || route == 35 || route == 36 || route == 37 || route == 38)
+                    {
+                        SetPedestrianRouteStateJSONModel setPedestrianRouteStateJSONModel = new SetPedestrianRouteStateJSONModel()
+                        {
+                            eventType = "SET_PEDESTRIAN_ROUTE_STATE",
+                            data = new SetPedestrianRouteStateJSONModelData()
+                            {
+                                routeId = route,
+                                state = "BLINKING"
+                            }
+                        };
+                        string strSetPedestrianRouteStateJSONModel = JsonConvert.SerializeObject(setPedestrianRouteStateJSONModel);
+                        websocket.Send(strSetPedestrianRouteStateJSONModel);
+                        Console.WriteLine(strSetPedestrianRouteStateJSONModel);
+                    }
+                }
+
+                System.Threading.Thread.Sleep(sleeperTime);
+
+                foreach (int route in routeSize)
+                {
+                    if (route == 1 || route == 2 || route == 3 || route == 4 || route == 5 || route == 7 || route == 8 || route == 9 || route == 10 || route == 11 || route == 12 || route == 15)
+                    {
+                        //Set Automobile Route State
+                        SetAutomobileRouteStateJSONModel SetAutombileRouteStateJSONModel = new SetAutomobileRouteStateJSONModel()
+                        {
+                            eventType = "SET_AUTOMOBILE_ROUTE_STATE",
+                            data = new SetAutomobileRouteStateJSONModelData()
+                            {
+                                routeId = route,
+                                state = "RED"
+                            }
+                        };
+                        string strSetAutomobileRouteState = JsonConvert.SerializeObject(SetAutombileRouteStateJSONModel);
+                        websocket.Send(strSetAutomobileRouteState);
+                        Console.WriteLine(strSetAutomobileRouteState);
+                    }
+                    if (route == 21 || route == 22 || route == 23 || route == 24)
+                    {
+                        SetCyclistRouteStateJSONModel setCyclistRouteStateJSONModel = new SetCyclistRouteStateJSONModel()
+                        {
+                            eventType = "SET_CYCLIST_ROUTE_STATE",
+                            data = new SetCyclistRouteStateJSONModelJSONModelData()
+                            {
+                                routeId = route,
+                                state = "RED"
+                            }
+                        };
+                        string strSetCyclistRouteStateJSONModel = JsonConvert.SerializeObject(setCyclistRouteStateJSONModel);
+                        websocket.Send(strSetCyclistRouteStateJSONModel);
+                        Console.WriteLine(strSetCyclistRouteStateJSONModel);
+                    }
+                    if (route == 31 || route == 32 || route == 33 || route == 34 || route == 35 || route == 36 || route == 37 || route == 38)
+                    {
+                        SetPedestrianRouteStateJSONModel setPedestrianRouteStateJSONModel = new SetPedestrianRouteStateJSONModel()
+                        {
+                            eventType = "SET_PEDESTRIAN_ROUTE_STATE",
+                            data = new SetPedestrianRouteStateJSONModelData()
+                            {
+                                routeId = route,
+                                state = "RED"
+                            }
+                        };
+                        string strSetPedestrianRouteStateJSONModel = JsonConvert.SerializeObject(setPedestrianRouteStateJSONModel);
+                        websocket.Send(strSetPedestrianRouteStateJSONModel);
+                        Console.WriteLine(strSetPedestrianRouteStateJSONModel);
+                    }
+                }
+
+                System.Threading.Thread.Sleep(sleeperTime);
+
+
+                int[] greenRouteSize = { 1, 2, 8, 22, 33, 34 };
+
+                foreach (int route in greenRouteSize)
+                {
+                    if (route == 1 || route == 2 || route == 3 || route == 4 || route == 5 || route == 7 || route == 8 || route == 9 || route == 10 || route == 11 || route == 12 || route == 15)
+                    {
+                        //Set Automobile Route State
+                        SetAutomobileRouteStateJSONModel SetAutombileRouteStateJSONModel = new SetAutomobileRouteStateJSONModel()
+                        {
+                            eventType = "SET_AUTOMOBILE_ROUTE_STATE",
+                            data = new SetAutomobileRouteStateJSONModelData()
+                            {
+                                routeId = route,
+                                state = "GREEN"
+                            }
+                        };
+                        string strSetAutomobileRouteState = JsonConvert.SerializeObject(SetAutombileRouteStateJSONModel);
+                        websocket.Send(strSetAutomobileRouteState);
+                        Console.WriteLine(strSetAutomobileRouteState);
+                    }
+                    if (route == 21 || route == 22 || route == 23 || route == 24)
+                    {
+                        SetCyclistRouteStateJSONModel setCyclistRouteStateJSONModel = new SetCyclistRouteStateJSONModel()
+                        {
+                            eventType = "SET_CYCLIST_ROUTE_STATE",
+                            data = new SetCyclistRouteStateJSONModelJSONModelData()
+                            {
+                                routeId = route,
+                                state = "GREEN"
+                            }
+                        };
+                        string strSetCyclistRouteStateJSONModel = JsonConvert.SerializeObject(setCyclistRouteStateJSONModel);
+                        websocket.Send(strSetCyclistRouteStateJSONModel);
+                        Console.WriteLine(strSetCyclistRouteStateJSONModel);
+                    }
+                    if (route == 31 || route == 32 || route == 33 || route == 34 || route == 35 || route == 36 || route == 37 || route == 38)
+                    {
+                        SetPedestrianRouteStateJSONModel setPedestrianRouteStateJSONModel = new SetPedestrianRouteStateJSONModel()
+                        {
+                            eventType = "SET_PEDESTRIAN_ROUTE_STATE",
+                            data = new SetPedestrianRouteStateJSONModelData()
+                            {
+                                routeId = route,
+                                state = "GREEN"
+                            }
+                        };
+                        string strSetPedestrianRouteStateJSONModel = JsonConvert.SerializeObject(setPedestrianRouteStateJSONModel);
+                        websocket.Send(strSetPedestrianRouteStateJSONModel);
+                        Console.WriteLine(strSetPedestrianRouteStateJSONModel);
+                    }
+                }
+
 
                 //Bij inkomende berichten voer deze taken uit
                 websocket.OnMessage += (sender, e) =>
                 {
-                    EntityEnteredZoneModel entityEnteredZoneModel = JsonConvert.DeserializeObject<EntityEnteredZoneModel>(e.Data);
+                    EntityEnteredZoneJSONModel entityEnteredZoneModel = JsonConvert.DeserializeObject<EntityEnteredZoneJSONModel>(e.Data);
                     Console.WriteLine();
                     Console.WriteLine(entityEnteredZoneModel.eventType);
                     Console.WriteLine(entityEnteredZoneModel.data.routeId);
@@ -71,7 +275,7 @@ namespace KruispuntSimulatieController
 
                 Console.ReadKey();
             }
-            
+
         }
     }
 }

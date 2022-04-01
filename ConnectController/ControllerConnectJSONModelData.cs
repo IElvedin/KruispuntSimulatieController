@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KruispuntSimulatieController
+namespace KruispuntSimulatieController.ConnectController
 {
-    class ControllerConnectDataModel
+    class ControllerConnectJSONModelData
     {
         public string sessionName { get; set; }
         public int sessionVersion { get; set; }

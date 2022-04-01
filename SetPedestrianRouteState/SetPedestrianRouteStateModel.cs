@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KruispuntSimulatieController
+namespace KruispuntSimulatieController.SetPedestrianRouteState
 {
-    class JSONSetAutombileRouteState
+    class SetPedestrianRouteStateJSONModel
     {
         public string eventType { get; set; }
-        public SetAutomobileRouteStateModel data { get; set; }
+        public SetPedestrianRouteStateJSONModelData data {get; set;}
     }
 }
