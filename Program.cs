@@ -1,5 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using KruispuntSimulatieController.Models;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using WebSocketSharp;
 
 namespace KruispuntSimulatieController
@@ -8,76 +10,90 @@ namespace KruispuntSimulatieController
     {
         private static readonly string address = "ws://keyslam.com:8080 ";
         private static readonly int onTrafficlightWait = 5000;
+        private static int[] allRoutes = { 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 15, 21, 22, 23, 24, 31, 32, 33, 34, 35, 36, 37, 38 };
 
         private static void Main(string[] args)
         {
-            SetRouteState setRouteState = new SetRouteState(address, onTrafficlightWait, address);
-            //Maakt connectie met broker
+            ConnectControllerModel connectModel = new ConnectControllerModel();
+            List<SetRouteState> routeStatuses = new List<SetRouteState>();
+
+            List<List<int>> possibleCarRouteCombos = new List<List<int>>();
+            possibleCarRouteCombos.Add(new List<int> { 1, 2, 7, 8 });
+            possibleCarRouteCombos.Add(new List<int> { 1, 2, 3, 4 });
+            possibleCarRouteCombos.Add(new List<int> { 1, 4, 10, 11 });
+            possibleCarRouteCombos.Add(new List<int> { 1, 4, 7, 10 });
+            possibleCarRouteCombos.Add(new List<int> { 1, 7, 10, 12 });
+            possibleCarRouteCombos.Add(new List<int> { 3, 4, 9, 10 });
+            possibleCarRouteCombos.Add(new List<int> { 4, 5, 7 });
+            possibleCarRouteCombos.Add(new List<int> { 4, 7, 9 });
+            possibleCarRouteCombos.Add(new List<int> { 7, 8, 9, 10 });
+
+            List<List<int>> routesLists = new List<List<int>>();
+            routesLists.Add(new List<int> { }); //0
+            routesLists.Add(new List<int> { }); //1
+            routesLists.Add(new List<int> { }); //2
+            routesLists.Add(new List<int> { }); //3
+            routesLists.Add(new List<int> { }); //4
+            routesLists.Add(new List<int> { }); //5
+            routesLists.Add(new List<int> { }); //6
+            routesLists.Add(new List<int> { }); //7
+            routesLists.Add(new List<int> { }); //8
+
             using (WebSocket websocket = new WebSocket(address))
             {
                 //Maak connectie met broker
                 websocket.Connect();
-
-                ConnectController connectController = new ConnectController("CONNECT_CONTROLLER", "elvedin", 1, false, false, false, false);
+                ConnectController connectController = new ConnectController("CONNECT_CONTROLLER", "groep8", 1, false, false, false, false);
                 string strConnection = JsonConvert.SerializeObject(connectController);
                 websocket.Send(strConnection);
 
-                //Check of er pogingen worden gedaan voor connectie maken
-                if (websocket.IsAlive)
-                {
-                    Console.WriteLine("Tried making connection \n");
-                }
-
-                int[] routeSize = { 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 15, 21, 22, 23, 24, 31, 32, 33, 34, 35, 36, 37, 38 };
-
-                int[][] routePossibilities = new int[][]
-                {
-                    new int[] { 1, 2, 7, 8},
-                    new int[] { 1, 2, 3 ,4},
-                    new int[] { 1, 4, 10, 11 },
-                    new int[] { 1, 4, 7, 10 },
-                    new int[] { 1, 7, 10, 12 },
-                    new int[] { 1, 10, 11, 12 },
-                    new int[] { 3, 4, 9, 10 },
-                    new int[] { 4,5,7 },
-                    new int[] { 4, 7, 9 },
-                    new int[] { 7, 8, 9, 10 }
-                };
-
-                //Bij inkomende berichten voer deze taken uit
                 websocket.OnMessage += (sender, e) =>
                 {
-                    EntityEnteredZone entityEnteredZone = JsonConvert.DeserializeObject<EntityEnteredZone>(e.Data);
-                    foreach (int[] array in routePossibilities)
+                    if (e.Data.Contains("\"ENTITY_ENTERED_ZONE\"") || e.Data.Contains("\"ENTITY_EXITED_ZONE\"")) ;
                     {
-                        int[] currentArray = array;
-
-                        foreach (int possibleRoute in array)
+                        EntityEnteredOrExitedZone entityEnteredOrExitedZone = JsonConvert.DeserializeObject<EntityEnteredOrExitedZone>(e.Data);
+                        foreach (List<int> route in possibleCarRouteCombos)
                         {
-                            if (entityEnteredZone.eventType == "ENTITY_ENTERED_ZONE")
+                            Console.WriteLine("new routeId: " + entityEnteredOrExitedZone.data.routeId);
+                            if (route.Contains(entityEnteredOrExitedZone.data.routeId))
                             {
-                                SetRouteState setRouteState = new SetRouteState(entityEnteredZone.eventType, entityEnteredZone.data.routeId, "GREEN");
-                                string strSetAutomobileRouteState = JsonConvert.SerializeObject(setRouteState);
-                                websocket.Send(strSetAutomobileRouteState);
-                                Console.WriteLine(strSetAutomobileRouteState);
+                                routesLists[possibleCarRouteCombos.IndexOf(route)].Add(entityEnteredOrExitedZone.data.routeId);
                             }
-                        }
-
-                        foreach (int possibleRoute in array)
-                        {
-                            if (entityEnteredZone.eventType == "ENTITY_EXITED_ZONE")
-                            {
-                                SetRouteState setRouteState = new SetRouteState(entityEnteredZone.eventType, entityEnteredZone.data.routeId, "RED");
-
-                                string strSetAutomobileRouteState = JsonConvert.SerializeObject(setRouteState);
-                                websocket.Send(strSetAutomobileRouteState);
-                                Console.WriteLine(strSetAutomobileRouteState);
-                            }
+                            Console.WriteLine("amount of cars: " + routesLists[possibleCarRouteCombos.IndexOf(route)].Count);
                         }
                     }
+
+                    if (e.Data.Contains("\"ACKNOWLEDGE_BRIDGE_STATE\"") || e.Data.Contains("\"ACKNOWLEDGE_BARRIERS_STATE\""))
+                    {
+                        SetOrRequestOrAcknowledgeBridgeState setOrRequestOrAcknowledge = JsonConvert.DeserializeObject<SetOrRequestOrAcknowledgeBridgeState>(e.Data);
+                    }
+
+                    if (e.Data.Contains("\"ACKNOWLEDGE_BRIDGE_STATE\"") || e.Data.Contains("\"ACKNOWLEDGE_BARRIERS_STATE\""))
+                    {
+                        SetOrRequestOrAcknowledgeBridgeState setOrRequestOrAcknowledge = JsonConvert.DeserializeObject<SetOrRequestOrAcknowledgeBridgeState>(e.Data);
+                    }
                 };
+
                 Console.ReadKey();
             }
+        }
+
+        /*private static void fillRoutesWithStateModels(List<SetRouteState> routeStatuses, int[] allRoutes, WebSocket webSocket)
+        {
+            for (int i = 0; i < allRoutes.Length; i++)
+            {
+                SetRouteState routeStatus = new SetRouteState("SET_AUTOMOBILE_ROUTE_STATE", allRoutes[i], "RED");
+                string strSetAutomobileRouteState = JsonConvert.SerializeObject(routeStatus);
+                webSocket.Send(strSetAutomobileRouteState);
+                routeStatuses.Add(routeStatus);
+            }
+        }*/
+
+        public static void Connect(WebSocket webSocket, ConnectControllerModel connectModel)
+        {
+            webSocket.Connect();
+            ConnectController connectController = new ConnectController(connectModel.eventType, connectModel.sessionName, connectModel.sessionVersion, connectModel.discardParseErrors, connectModel.discardEventTypeErrors, connectModel.discardMalformedDataErrors, connectModel.discardInvalidStateErrors);
+            webSocket.Send(JsonConvert.SerializeObject(connectController));
         }
     }
 }
