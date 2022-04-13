@@ -1,6 +1,6 @@
 ﻿namespace KruispuntSimulatieController
 {
-    internal class EntityEnteredOrExitedZone
+    internal class EventTypeRouteIdSensorId
     {
         public string eventType;
         public Data data;
@@ -11,7 +11,7 @@
             public int sensorId { get; set; }
         }
 
-        public EntityEnteredOrExitedZone(string eventType, int routeId, int sensorId)
+        public EventTypeRouteIdSensorId(string eventType, int routeId, int sensorId)
         {
             this.eventType = eventType;
             data = new Data()

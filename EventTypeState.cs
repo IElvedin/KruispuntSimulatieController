@@ -1,6 +1,6 @@
 ﻿namespace KruispuntSimulatieController
 {
-    public class SetOrRequestOrAcknowledgeBridgeState
+    public class EventTypeState
     {
         public string eventType;
         public Data data;
@@ -10,7 +10,7 @@
             public string state { get; set; }
         }
 
-        public SetOrRequestOrAcknowledgeBridgeState(string eventType, string state)
+        public EventTypeState(string eventType, string state)
         {
             this.eventType = eventType;
             data = new Data()

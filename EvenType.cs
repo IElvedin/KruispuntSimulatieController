@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace KruispuntSimulatieController
 {
-    public class RequestOrAcknowledgeBridgeEmpty
+    public class EvenType
     {
         public string eventType;
 
-        public RequestOrAcknowledgeBridgeEmpty(string eventType)
+        public EvenType(string eventType)
         {
             this.eventType = eventType;
         }
