@@ -26,6 +26,13 @@ namespace KruispuntSimulatieController
             };
         }
 
+        //public EventTypeRouteIdState buildRouteState(string eventType, List<int> routeList, int index, string state, WebSocket webSocket, List<EventTypeRouteIdState> routeStatuses)
+        public void buildRouteState(EventTypeRouteIdState routeIdState, WebSocket webSocket)
+        {
+            string strSetRouteState = JsonConvert.SerializeObject(routeIdState);
+            webSocket.Send(strSetRouteState);
+        }
+
         public void JSONMessageConverter(EventTypeRouteIdState routeState, WebSocket webSocket, List<EventTypeRouteIdState> routeStatuses)
         {
             string strSetRouteState = JsonConvert.SerializeObject(routeState);

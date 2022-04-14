@@ -48,15 +48,15 @@ namespace KruispuntSimulatieController
         {
             get
             {
-                _baseRouteLists.Add(new List<int> { }); //0
-                _baseRouteLists.Add(new List<int> { }); //1
-                _baseRouteLists.Add(new List<int> { }); //2
-                _baseRouteLists.Add(new List<int> { }); //3
-                _baseRouteLists.Add(new List<int> { }); //4
-                _baseRouteLists.Add(new List<int> { }); //5
-                _baseRouteLists.Add(new List<int> { }); //6
-                _baseRouteLists.Add(new List<int> { }); //7
-                _baseRouteLists.Add(new List<int> { }); //8
+                _baseRouteLists.Add(new List<int>());
+                _baseRouteLists.Add(new List<int>());
+                _baseRouteLists.Add(new List<int>());
+                _baseRouteLists.Add(new List<int>());
+                _baseRouteLists.Add(new List<int>());
+                _baseRouteLists.Add(new List<int>());
+                _baseRouteLists.Add(new List<int>());
+                _baseRouteLists.Add(new List<int>());
+                _baseRouteLists.Add(new List<int>());
                 return _baseRouteLists;
             }
         }
@@ -65,31 +65,34 @@ namespace KruispuntSimulatieController
         {
             EventTypeRouteIdState routeState;
             allRoutes = new Routes().allRoute;
-            Console.WriteLine(allRoutes.Count);
             foreach (List<int> routelist in allRoutes)
             {
-                foreach (int index in routelist)
+                //foreach (int index in routelist)
+                for (int i = 0; i < routelist.Count; i++)
                 {
                     switch (allRoutes.IndexOf(routelist))
                     {
                         case 0:
-                            routeState = new EventTypeRouteIdState("SET_AUTOMOBILE_ROUTE_STATE", routelist.IndexOf(index), "RED");
+                            routeState = new EventTypeRouteIdState("SET_AUTOMOBILE_ROUTE_STATE", routelist[i], "RED");
                             Console.WriteLine(routeState.eventType + "\t" + routeState.data.routeId + "\t" + routeState.data.state);
                             routeState.JSONMessageConverter(routeState, webSocket, routeStatuses);
                             break;
 
                         case 1:
-                            routeState = new EventTypeRouteIdState("SET_CYCLIST_ROUTE_STATE", routelist.IndexOf(index), "RED");
+                            routeState = new EventTypeRouteIdState("SET_CYCLIST_ROUTE_STATE", routelist[i], "RED");
+                            Console.WriteLine(routeState.eventType + "\t" + routeState.data.routeId + "\t" + routeState.data.state);
                             routeState.JSONMessageConverter(routeState, webSocket, routeStatuses);
                             break;
 
                         case 2:
-                            routeState = new EventTypeRouteIdState("SET_PEDESTRIAN_ROUTE_STATE", routelist.IndexOf(index), "RED");
+                            routeState = new EventTypeRouteIdState("SET_PEDESTRIAN_ROUTE_STATE", routelist[i], "RED");
+                            Console.WriteLine(routeState.eventType + "\t" + routeState.data.routeId + "\t" + routeState.data.state);
                             routeState.JSONMessageConverter(routeState, webSocket, routeStatuses);
                             break;
 
                         case 3:
-                            routeState = new EventTypeRouteIdState("SET_BOAT_ROUTE_STATE", routelist.IndexOf(index), "RED");
+                            routeState = new EventTypeRouteIdState("SET_BOAT_ROUTE_STATE", routelist[i], "RED");
+                            Console.WriteLine(routeState.eventType + "\t" + routeState.data.routeId + "\t" + routeState.data.state);
                             routeState.JSONMessageConverter(routeState, webSocket, routeStatuses);
                             break;
                     }
