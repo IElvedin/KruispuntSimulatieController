@@ -1,10 +1,8 @@
-﻿using KruispuntSimulatieController.ProtocolModels;
-using KruispuntSimulatieController.Route.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace KruispuntSimulatieController
+namespace KruispuntSimulatieController.RouteDataModels
 {
     public sealed class TrafficLightEntityAmount
     {
@@ -25,6 +23,7 @@ namespace KruispuntSimulatieController
 
         private static readonly object Padlock = new object();
 
+        private int _requestCount = 0;
 
         private TrafficLightEntityAmount() { }
 
@@ -45,39 +44,48 @@ namespace KruispuntSimulatieController
 
         public void ChangeTrafficLightAmount(int key)
         {
-            int amount = 1;
+            _requestCount++;
             if (_TrafficLights.ContainsKey(key))
             {
-                _TrafficLights[key] += amount;
-                Console.WriteLine($"Changed route: {key} to amount: {_TrafficLights[key]}");
+                if (_TrafficLights[key] == 0)
+                {
+                    _TrafficLights[key] += _requestCount;
+                }                
+                
             }
             else
+            {
                 Console.WriteLine("Route not found.");
-        }
+            }
 
-        public List<int> GetPriorityRoutes(List<int> oldPriorityList)
+        }        
+
+        public List<int> GetPriorityRoutes()
         {
             List<int> newPriorityList = new List<int>();
 
-            int count = 0;            
+            IEnumerable<KeyValuePair<int, int>> orderedList = _TrafficLights.OrderBy(route => route.Value);
 
-            foreach (KeyValuePair<int, int> route in _TrafficLights.OrderBy(route => route.Value))
+            foreach (KeyValuePair<int, int> route in orderedList)
             {
                 if (route.Value != 0)
                 {
-                    if (oldPriorityList != null && oldPriorityList.Contains(route.Key))
+                    if (RoutesCombinations.GetInstance().IsRouteCompatible(route.Key, newPriorityList))
                     {
-                        newPriorityList.Insert(count, route.Key);
-                    }
-                    else
-                    {
-                        newPriorityList.Insert(count, route.Key);
-                        count++;
+                        newPriorityList.Add(route.Key);
                     }
                 }
             }
 
             return newPriorityList;
+        }
+
+        public void ResetFromList(List<int> trafficlights)
+        {
+            foreach (int item in trafficlights)
+            {
+                _TrafficLights[item] = 0;
+            }
         }
     }
 }

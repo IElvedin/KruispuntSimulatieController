@@ -11,9 +11,9 @@ namespace KruispuntSimulatieController
     {
         private static void Main(string[] args)
         {
-            Console.WriteLine("Traffic simualator started!");
-            TrafficSimulatorController traffic_Simulator_Controller = new TrafficSimulatorController();
-            traffic_Simulator_Controller.Run();
+            Console.WriteLine("Traffic simulation started!");
+            TrafficSimulatorController trafficSimulatorController = new TrafficSimulatorController();
+            trafficSimulatorController.Run();
             Console.ReadLine();
         }
     }

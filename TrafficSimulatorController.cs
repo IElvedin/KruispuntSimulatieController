@@ -16,94 +16,35 @@ namespace KruispuntSimulatieController
         private readonly string _url = "ws://keyslam.com:8080";
         private List<int> _lastCycle;
         private bool _sessionActive = false;
-        //private bool _bridgeCycleActive = false;
+        private WebSocket _webSocket;
+        private Thread _mainThread;
 
-        public TrafficSimulatorController() { }
-        
-        public async void Run()
+        public TrafficSimulatorController() 
         {
-            WebSocket webSocket = new WebSocket(_url);
-            TrafficLightState trafficLightState = TrafficLightState.GetInstance();
-            TimerModel timerModel = new TimerModel();
-
-            webSocket.OnOpen += (sender, e) =>
+            _webSocket = new WebSocket(_url);
+        }
+        
+        public void Run()
+        {
+            _webSocket.OnOpen += (sender, e) =>
             {
-                WebSocketConnect(webSocket);     
+                _webSocketConnect();     
             };
 
-            webSocket.OnMessage += _onMessage;
+            _webSocket.OnMessage += _onMessage;
 
-            webSocket.OnClose += (sender, e) =>
+            _webSocket.OnClose += (sender, e) =>
             {
                 Console.WriteLine($"closed; Reason was: {e.Reason}");
             };
 
-            webSocket.OnError += (sander, e) =>
+            _webSocket.OnError += (sander, e) =>
             {
                 Console.WriteLine("Server error");
                 Console.WriteLine(e.Message);
             };
 
-            webSocket.Connect();
-
-            while (webSocket.IsAlive)
-            {
-                if (_sessionActive == true)
-                {
-                    Console.WriteLine($"Current intersection cycle: {timerModel.timerClass}");
-                    string currentTimerType = "";
-
-                    switch (timerModel.timerClass)
-                    {
-                        case TimerModel.TimerClass.Starter:
-                            Thread.Sleep(2500);
-
-                            trafficLightState.ChangeStateGreen(GetTheBestCombination());
-                            timerModel.SetClass(TimerModel.TimerClass.GreenCycle);
-
-                            currentTimerType = "GREEN";
-                            break;
-
-                        case TimerModel.TimerClass.GreenCycle:
-                            trafficLightState.ChangeStateOrange();
-                            timerModel.SetClass(TimerModel.TimerClass.OrangeCycle);
-
-                            currentTimerType = "ORANGE";
-                            break;
-
-                        case TimerModel.TimerClass.OrangeCycle:
-                            trafficLightState.ChangeStateRed();
-                            timerModel.SetClass(TimerModel.TimerClass.RedCycle);
-
-                            currentTimerType = "RED";
-                            break;
-
-                        case TimerModel.TimerClass.RedCycle:
-                            trafficLightState.ChangeStateGreen(GetTheBestCombination());
-                            timerModel.SetClass(TimerModel.TimerClass.GreenCycle);
-
-                            currentTimerType = "GREEN";
-                            break;
-                    }
-                    await trafficLightState.SendChangedStates(GetTheBestCombination(), webSocket, currentTimerType);
-                    Console.WriteLine($"waiting time: {timerModel.time}");
-                    Thread.Sleep(timerModel.time);
-                }               
-
-                #region SOMETHING
-                /*while (_bridgeCycleActive)
-                {
-                    EventTypeStateModelData eventTypeStateModelData = new EventTypeStateModelData()
-                    {
-                        state = "ON"
-                    };
-                    EventTypeStateModel eventTypeStateModel = new EventTypeStateModel()
-                    {
-
-                    };
-                }*/
-                #endregion
-            }
+            _webSocket.Connect();
         }
 
         private void _onMessage(object sender, MessageEventArgs e)
@@ -146,6 +87,8 @@ namespace KruispuntSimulatieController
                     EventTypeModel fData = JsonSerializer.Deserialize<EventTypeModel>(e.Data);
                     Console.WriteLine($"{fData.eventType}");
                     _sessionActive = true;
+                    _mainThread = new Thread(MainLoop);
+                    _mainThread.Start();
                     break;
 
                 case string g when g.Contains("\"eventType\"" + " : " + "\"SESSION_STOP\""):
@@ -157,11 +100,34 @@ namespace KruispuntSimulatieController
                 case string h when h.Contains("\"eventType\"" + ":" + "\"ENTITY_ENTERED_ZONE\""):
                     EventTypeRouteIdSensorIdModel hData = JsonSerializer.Deserialize<EventTypeRouteIdSensorIdModel>(e.Data);
                     Console.WriteLine($"{hData.eventType}");
-                    TrafficLightEntityAmount.GetInstance().ChangeTrafficLightAmount(hData.data.routeId);                    
+                    TrafficLightEntityAmount.GetInstance().ChangeTrafficLightAmount(hData.data.routeId);
                     break;
             }
         }
-        private void WebSocketConnect(WebSocket webSocket)
+
+        private void MainLoop()
+        {
+            while (_sessionActive)
+            {
+                List<int> trafficlights = TrafficLightEntityAmount.GetInstance().GetPriorityRoutes();
+                if (trafficlights.Count == 0)
+                {
+                    Thread.Sleep(10);
+                }
+                else
+                {
+                    Console.WriteLine("Starting trafficlight cycle");
+                    TrafficLightState.GetInstance().SendChangedStates(trafficlights, _webSocket, "GREEN");
+                    Thread.Sleep(8000);
+                    TrafficLightState.GetInstance().SendChangedStates(trafficlights, _webSocket, "ORANGE");
+                    Thread.Sleep(3000);
+                    TrafficLightState.GetInstance().SendChangedStates(trafficlights, _webSocket, "RED");
+                    TrafficLightEntityAmount.GetInstance().ResetFromList(trafficlights);
+                }
+            }
+        }
+
+        private void _webSocketConnect()
         {
             ConnectionDataModel ConnectionDataModel = new ConnectionDataModel
             {
@@ -174,56 +140,7 @@ namespace KruispuntSimulatieController
             };
 
             ConnectController connectController = new ConnectController { data = ConnectionDataModel };
-            webSocket.Send(JsonSerializer.Serialize(connectController));
-        }
-
-        private List<int> GetTheBestCombination()
-        {
-            TrafficLightEntityAmount amount = TrafficLightEntityAmount.GetInstance();
-            RoutesCombinations combinations = RoutesCombinations.GetInstance();
-
-            List<int> newCycle = new List<int>();
-            List<int> orderedAmount = amount.GetPriorityRoutes(_lastCycle);
-
-            if (orderedAmount.Count > 0)
-            {
-                foreach (int key in orderedAmount)
-                {
-                    bool notFound = true;
-
-                    foreach (int route in newCycle)
-                    {
-                        if (combinations.GetRouteSpecefiek(route).Contains(key))
-                        {
-                            notFound = false;
-                            break;
-                        }
-                    }
-
-                    if (notFound)
-                    {
-                        /*if (key == 41 || key == 42)
-                        {
-                            _bridgeCycleActive = true;
-                        }*/
-
-                        newCycle.Add(key);
-                    }
-                }
-
-                GetCycle(newCycle);
-                _lastCycle = newCycle;
-            }
-            return newCycle;
-        }
-
-        private void GetCycle(List<int> cycle)
-        {
-            Console.WriteLine("Current active routes:");
-            foreach (int route in cycle)
-            {
-                Console.WriteLine($"{route} ");
-            }
+            _webSocket.Send(JsonSerializer.Serialize(connectController));
         }
     }
 }

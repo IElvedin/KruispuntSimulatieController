@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
-namespace KruispuntSimulatieController.Route.Data
+namespace KruispuntSimulatieController.RouteDataModels
 {
     public class RoutesCombinations
     {
-        private readonly Dictionary<int, List<int>> routes = new Dictionary<int, List<int>>()
+        private readonly Dictionary<int, List<int>> _routes = new Dictionary<int, List<int>>()
         {
             { 1, new List<int>() { 5, 9, 21, 24, 31, 38 } },
             { 2, new List<int>() { 5, 9, 10, 11, 12, 21, 23, 31, 36 } },
@@ -20,8 +21,8 @@ namespace KruispuntSimulatieController.Route.Data
             { 15, new List<int>() { 3, 4, 5, 7, 11 } },
             { 21, new List<int>() { 1, 2, 3, 4, 12 } },
             { 22, new List<int>() { 3, 4, 5, 7, 11 } },
-            { 23, new List<int>() { 2, 7, 8, 9, 10 } },
-            { 24, new List<int>() { 2, 7, 8, 9, 10 } },
+            { 23, new List<int>() { 2, 5, 7, 8, 9, 10 } },
+            { 24, new List<int>() { 2, 5, 7, 8, 9, 10 } },
             { 31, new List<int>() { 1, 2, 3 } },
             { 32, new List<int>() { 4, 8, 12 } },
             { 33, new List<int>() { 4, 5 } },
@@ -34,12 +35,46 @@ namespace KruispuntSimulatieController.Route.Data
             { 42, new List<int>() { 41 } },
         };
 
-        private static RoutesCombinations _instance = new RoutesCombinations();
+        private static RoutesCombinations _instance;
+        
+        private static readonly object Padlock = new object();
 
         private RoutesCombinations() { }
 
-        public static RoutesCombinations GetInstance() { return _instance; }
+        public static RoutesCombinations GetInstance()
+        {
+            if (_instance == null)
+            {
+                lock (Padlock)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new RoutesCombinations();
+                    }
+                }
+            }
+            return _instance;
+        }
+        
+        public bool IsRouteCompatible(int key, List<int> routesList)
+        {
+            if (routesList.Count < 1)
+            {
+                return true;
+            }
 
-        public List<int> GetRouteSpecefiek(int key) { return routes[key]; }
+            if (_routes.ContainsKey(key))
+            {
+                foreach (int item in routesList)
+                {
+                    if (_routes[key].Contains(item))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            throw new Exception($"key not found {key}");   
+        }
     }
 }
