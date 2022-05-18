@@ -1,11 +1,10 @@
-﻿using KruispuntSimulatieController.Connection.Handler;
-using KruispuntSimulatieController.ProtocolModels;
-using KruispuntSimulatieController.Route.Data;
+﻿using KruispuntSimulatieController.ProtocolModels;
 using KruispuntSimulatieController.RouteDataModels;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
+using KruispuntSimulatieController.ConnectionModels;
 using WebSocketSharp;
 
 namespace KruispuntSimulatieController
@@ -14,10 +13,11 @@ namespace KruispuntSimulatieController
     {
         private readonly string _sessionName = "elvedin";
         private readonly string _url = "ws://keyslam.com:8080";
-        private List<int> _lastCycle;
-        private bool _sessionActive = false;
-        private WebSocket _webSocket;
+        private readonly WebSocket _webSocket;
+        private bool _sessionActive;
+        
         private Thread _mainThread;
+        private Thread _boatThread;
 
         public TrafficSimulatorController() 
         {
@@ -51,57 +51,155 @@ namespace KruispuntSimulatieController
         {
             switch (e.Data)
             {
-                case string a when a.Contains("\"eventType\"" + ":" + "\"ERROR_UNKNOWN_EVENT_TYPE\""):
+                case { } a when a.Contains("\"eventType\"" + ":" + "\"ERROR_UNKNOWN_EVENT_TYPE\""):
                     ErrorUnknownEventTypeModel aData = JsonSerializer.Deserialize<ErrorUnknownEventTypeModel>(e.Data);
-                    Console.WriteLine($"Error received:     {aData.eventType}");
-                    Console.WriteLine($"Invalid message:    {aData.data.receivedMessage}");
-                    break;
-
-                case string b when b.Contains("\"eventType\"" + ":" + "\"ERROR_NOT_PARSEABLE\""):
-                    ErrorNotParseableModel bData = JsonSerializer.Deserialize<ErrorNotParseableModel>(e.Data);
-                    Console.WriteLine($"Error received:     {bData.eventType}");
-                    Console.WriteLine($"Invalid message:    {bData.data.receivedMessage}");
-                    Console.WriteLine($"Given exception:    {bData.data.exception}");
-                    break;
-
-                case string c when c.Contains("\"eventType\"" + ":" + "\"ERROR_MALFORMED_MESSAGE\""):
-                    ErrorMalformedMessageModel cData = JsonSerializer.Deserialize<ErrorMalformedMessageModel>(e.Data);
-                    Console.WriteLine($"Error received:     {cData.eventType}");
-                    Console.WriteLine($"Invalid message:    {cData.data.receivedMessage}");
-                    Console.WriteLine("Given Errors:");
-                    for (int i = 0; i < cData.data.errors.Length; i++)
+                    if (aData != null)
                     {
-                        Console.WriteLine($"~Error: {cData.data.errors[i]}");
+                        Console.WriteLine($"Error received:     {aData.eventType}");
+                        Console.WriteLine($"Invalid message:    {aData.data.receivedMessage}");
+                        Console.WriteLine($"Invalid message:    {aData.data.validEventTypes}");
                     }
+
                     break;
 
-                case string d when d.Contains("\"eventType\"" + ":" + "\"ERROR_INVALID_STATE\""):
+                case { } b when b.Contains("\"eventType\"" + ":" + "\"ERROR_NOT_PARSEABLE\""):
+                    ErrorNotParseableModel bData = JsonSerializer.Deserialize<ErrorNotParseableModel>(e.Data);
+                    if (bData != null)
+                    {
+                        Console.WriteLine($"Error received:     {bData.eventType}");
+                        Console.WriteLine($"Invalid message:    {bData.data.receivedMessage}");
+                        Console.WriteLine($"Given exception:    {bData.data.exception}");
+                    }
+
+                    break;
+
+                case { } c when c.Contains("\"eventType\"" + ":" + "\"ERROR_MALFORMED_MESSAGE\""):
+                    ErrorMalformedMessageModel cData = JsonSerializer.Deserialize<ErrorMalformedMessageModel>(e.Data);
+                    if (cData != null)
+                    {
+                        Console.WriteLine($"Error received:     {cData.eventType}");
+                        Console.WriteLine($"Invalid message:    {cData.data.receivedMessage}");
+                        Console.WriteLine("Given Errors:");
+                        foreach (string error in cData.data.errors)
+                        {
+                            Console.WriteLine($"~Error: {error}");
+                        }
+                    }
+
+                    break;
+
+                case { } d when d.Contains("\"eventType\"" + ":" + "\"ERROR_INVALID_STATE\""):
                     ErrorInvalidStateModel dData = JsonSerializer.Deserialize<ErrorInvalidStateModel>(e.Data);
-                    Console.WriteLine($"Error received:     {dData.eventType}");
-                    Console.WriteLine($"Invalid message:    {dData.data.receivedMessage}");
-                    Console.WriteLine($"Given error:        {dData.data.error}");
+                    if (dData != null)
+                    {
+                        Console.WriteLine($"Error received:     {dData.eventType}");
+                        Console.WriteLine($"Invalid message:    {dData.data.receivedMessage}");
+                        Console.WriteLine($"Given error:        {dData.data.error}");
+                    }
+
                     break;
 
-                case string f when f.Contains("\"eventType\"" + ":" + "\"SESSION_START\""):
+                case { } f when f.Contains("\"eventType\"" + ":" + "\"SESSION_START\""):
                     Console.Clear();
                     EventTypeModel fData = JsonSerializer.Deserialize<EventTypeModel>(e.Data);
-                    Console.WriteLine($"{fData.eventType}");
+                    if (fData != null)
+                    {
+                        Console.WriteLine($"{fData.eventType}");
+                    }
                     _sessionActive = true;
                     _mainThread = new Thread(MainLoop);
+                    _boatThread = new Thread(BoatLoop);
                     _mainThread.Start();
+                    _boatThread.Start();
                     break;
 
-                case string g when g.Contains("\"eventType\"" + " : " + "\"SESSION_STOP\""):
+                case { } g when g.Contains("\"eventType\"" + " : " + "\"SESSION_STOP\""):
                     EventTypeModel gData = JsonSerializer.Deserialize<EventTypeModel>(e.Data);
-                    Console.WriteLine($"{gData.eventType}");
+                    if (gData != null)
+                    {
+                        Console.WriteLine($"{gData.eventType}");
+                    }
                     _sessionActive = false;
                     break;
 
-                case string h when h.Contains("\"eventType\"" + ":" + "\"ENTITY_ENTERED_ZONE\""):
+                case { } h when h.Contains("\"eventType\"" + ":" + "\"ENTITY_ENTERED_ZONE\""):
                     EventTypeRouteIdSensorIdModel hData = JsonSerializer.Deserialize<EventTypeRouteIdSensorIdModel>(e.Data);
-                    Console.WriteLine($"{hData.eventType}");
-                    TrafficLightEntityAmount.GetInstance().ChangeTrafficLightAmount(hData.data.routeId);
+                    if (hData != null)
+                    {
+                        Console.WriteLine($"{hData.eventType}");
+                        if (hData.data.routeId == 41 || hData.data.routeId == 42)
+                        {
+                            BridgeState.GetInstance().SetRouteId(hData.data.routeId);
+                            BridgeState.GetInstance().ChangeBoatRouteState(hData.eventType);
+                        }
+                        else
+                        {
+                            TrafficLightEntityAmount.GetInstance().ChangeTrafficLightAmount(hData.data.routeId);
+                        }
+                        
+                    }
                     break;
+                
+                case { } i when i.Contains("\"eventType\"" + ":" + "\"ACKNOWLEDGE_BRIDGE_ROAD_EMPTY\""):
+                    EventTypeModel iData = JsonSerializer.Deserialize<EventTypeModel>(e.Data);
+                    if (iData != null)
+                    {
+                        Console.WriteLine($"{iData.eventType}");
+                        BridgeState.GetInstance().ChangeBoatRouteEventType(iData.eventType);
+                    }
+                    break;
+                
+                case { } j when j.Contains("\"eventType\"" + ":" + "\"ACKNOWLEDGE_BARRIERS_STATE\""):
+                    EventTypeStateModel jData = JsonSerializer.Deserialize<EventTypeStateModel>(e.Data);
+                    if (jData != null)
+                    {
+                        Console.WriteLine($"{jData.eventType}");
+                        BridgeState.GetInstance().ChangeBoatRouteEventType(jData.eventType);
+                        BridgeState.GetInstance().ChangeBoatRouteState(jData.data.state);
+                    }
+                    break;
+                
+                case { } k when k.Contains("\"eventType\"" + ":" + "\"ACKNOWLEDGE_BRIDGE_STATE\""):
+                    EventTypeStateModel kData = JsonSerializer.Deserialize<EventTypeStateModel>(e.Data);
+                    if (kData != null)
+                    {
+                        Console.WriteLine($"{kData.eventType}");
+                        BridgeState.GetInstance().ChangeBoatRouteEventType(kData.eventType);
+                        BridgeState.GetInstance().ChangeBoatRouteState(kData.data.state);
+                    }
+                    break;
+                
+                case { } l when l.Contains("\"eventType\"" + ":" + "\"ACKNOWLEDGE_BRIDGE_WATER_EMPTY\""):
+                    EventTypeStateModel lData = JsonSerializer.Deserialize<EventTypeStateModel>(e.Data);
+                    if (lData != null)
+                    {
+                        Console.WriteLine($"{lData.eventType}");
+                        BridgeState.GetInstance().ChangeBoatRouteEventType(lData.eventType);
+                    }
+                    break;
+                
+                
+            }
+        }
+
+        private void BoatLoop()
+        {
+            BridgeInformation bridgeInformation = new BridgeInformation();
+            while (_sessionActive)
+            {
+                if (bridgeInformation.routeId == 0)
+                {
+                    Thread.Sleep(10);
+                }
+                else
+                {
+                    Console.WriteLine("Boat arrived. Bridge sequence starting");
+                    BridgeState.GetInstance().BridgeSequence(_webSocket);
+                    if (bridgeInformation.routeId == 0)
+                    {
+                        Console.WriteLine("Boat passed. Bridge sequence finished");
+                    }
+                }
             }
         }
 
@@ -109,27 +207,27 @@ namespace KruispuntSimulatieController
         {
             while (_sessionActive)
             {
-                List<int> trafficlights = TrafficLightEntityAmount.GetInstance().GetPriorityRoutes();
-                if (trafficlights.Count == 0)
+                List<int> trafficLight = TrafficLightEntityAmount.GetInstance().GetPriorityRoutes();
+                if (trafficLight.Count == 0)
                 {
                     Thread.Sleep(10);
                 }
                 else
                 {
-                    Console.WriteLine("Starting trafficlight cycle");
-                    TrafficLightState.GetInstance().SendChangedStates(trafficlights, _webSocket, "GREEN");
+                    Console.WriteLine("Starting new traffic light cycle");
+                    TrafficLightState.GetInstance().SendChangedStates(trafficLight, _webSocket, "GREEN");
                     Thread.Sleep(8000);
-                    TrafficLightState.GetInstance().SendChangedStates(trafficlights, _webSocket, "ORANGE");
+                    TrafficLightState.GetInstance().SendChangedStates(trafficLight, _webSocket, "ORANGE");
                     Thread.Sleep(3000);
-                    TrafficLightState.GetInstance().SendChangedStates(trafficlights, _webSocket, "RED");
-                    TrafficLightEntityAmount.GetInstance().ResetFromList(trafficlights);
+                    TrafficLightState.GetInstance().SendChangedStates(trafficLight, _webSocket, "RED");
+                    TrafficLightEntityAmount.GetInstance().ResetFromList(trafficLight);
                 }
             }
         }
 
         private void _webSocketConnect()
         {
-            ConnectionDataModel ConnectionDataModel = new ConnectionDataModel
+            ConnectionDataModel connectionDataModel = new ConnectionDataModel
             {
                 sessionName = _sessionName,
                 sessionVersion = 1,
@@ -139,7 +237,7 @@ namespace KruispuntSimulatieController
                 discardInvalidStateErrors = false
             };
 
-            ConnectController connectController = new ConnectController { data = ConnectionDataModel };
+            ConnectController connectController = new ConnectController { data = connectionDataModel };
             _webSocket.Send(JsonSerializer.Serialize(connectController));
         }
     }

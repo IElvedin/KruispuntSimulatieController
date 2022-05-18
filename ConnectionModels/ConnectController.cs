@@ -1,5 +1,4 @@
-﻿
-namespace KruispuntSimulatieController.Connection.Handler
+﻿namespace KruispuntSimulatieController.ConnectionModels
 {
     public class ConnectController
     {

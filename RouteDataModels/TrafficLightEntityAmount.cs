@@ -6,7 +6,7 @@ namespace KruispuntSimulatieController.RouteDataModels
 {
     public sealed class TrafficLightEntityAmount
     {
-        private Dictionary<int, int> _TrafficLights = new Dictionary<int, int>()
+        private readonly Dictionary<int, int> _trafficLights = new Dictionary<int, int>()
         {
             //Cars
             { 1, 0 }, { 2, 0 }, { 3, 0}, { 4, 0}, { 5, 0}, { 7, 0}, { 8, 0}, { 9, 0}, { 10, 0}, { 11, 0}, { 12, 0}, { 15, 0},
@@ -23,7 +23,7 @@ namespace KruispuntSimulatieController.RouteDataModels
 
         private static readonly object Padlock = new object();
 
-        private int _requestCount = 0;
+        private int _requestCount;
 
         private TrafficLightEntityAmount() { }
 
@@ -45,11 +45,11 @@ namespace KruispuntSimulatieController.RouteDataModels
         public void ChangeTrafficLightAmount(int key)
         {
             _requestCount++;
-            if (_TrafficLights.ContainsKey(key))
+            if (_trafficLights.ContainsKey(key))
             {
-                if (_TrafficLights[key] == 0)
+                if (_trafficLights[key] == 0)
                 {
-                    _TrafficLights[key] += _requestCount;
+                    _trafficLights[key] += _requestCount;
                 }                
                 
             }
@@ -64,7 +64,7 @@ namespace KruispuntSimulatieController.RouteDataModels
         {
             List<int> newPriorityList = new List<int>();
 
-            IEnumerable<KeyValuePair<int, int>> orderedList = _TrafficLights.OrderBy(route => route.Value);
+            IEnumerable<KeyValuePair<int, int>> orderedList = _trafficLights.OrderBy(route => route.Value);
 
             foreach (KeyValuePair<int, int> route in orderedList)
             {
@@ -84,7 +84,7 @@ namespace KruispuntSimulatieController.RouteDataModels
         {
             foreach (int item in trafficlights)
             {
-                _TrafficLights[item] = 0;
+                _trafficLights[item] = 0;
             }
         }
     }

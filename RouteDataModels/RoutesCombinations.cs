@@ -63,18 +63,18 @@ namespace KruispuntSimulatieController.RouteDataModels
                 return true;
             }
 
-            if (_routes.ContainsKey(key))
+            if (!_routes.ContainsKey(key))
             {
-                foreach (int item in routesList)
-                {
-                    if (_routes[key].Contains(item))
-                    {
-                        return false;
-                    }
-                }
-                return true;
+                throw new Exception($"key not found {key}");
             }
-            throw new Exception($"key not found {key}");   
+            foreach (int item in routesList)
+            {
+                if (_routes[key].Contains(item))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

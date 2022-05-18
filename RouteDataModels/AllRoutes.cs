@@ -1,39 +1,34 @@
-﻿using KruispuntSimulatieController.Route.Data.AllRouteModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using KruispuntSimulatieController.RouteDataModels.AllRouteModels;
 
-namespace KruispuntSimulatieController.Route.Data
+namespace KruispuntSimulatieController.RouteDataModels
 {
     public class AllRoutes
     {
-        private List<List<int>> AllRoutesList;
-        private List<int> _CarRoutes = new CarRoutes().CarRoutesList;
-        private List<int> _BicyclesRoutes = new BicyclesRoutes().BicyclesRoutesList;
-        private List<int> _PedestriansRoutes = new PedestriansRoutes().PedestriansRoutesList;
-        private List<int> _BoatsRoutes = new BoatsRoutes().BoatsRoutesList;
+        private readonly List<List<int>> _allRoutesList;
+        private readonly List<int> _carRoutes = new CarRoutes().carRoutesList;
+        private readonly List<int> _bicyclesRoutes = new BicyclesRoutes().bicyclesRoutesList;
+        private readonly List<int> _pedestriansRoutes = new PedestriansRoutes().pedestriansRoutesList;
+        private readonly List<int> _boatsRoutes = new BoatsRoutes().boatsRoutesList;
 
         public AllRoutes()
         {
-            AllRoutesList = new List<List<int>>()
+            _allRoutesList = new List<List<int>>()
             {
                 //Cars
-                _CarRoutes,
+                _carRoutes,
                 //Bicycles
-                _BicyclesRoutes,
+                _bicyclesRoutes,
                 //Pedestrians
-                _PedestriansRoutes,
+                _pedestriansRoutes,
                 //Boats
-                _BoatsRoutes
-
+                _boatsRoutes
             };
         }
 
         public List<List<int>> GetAllRoutes()
         {
-            return AllRoutesList;
+            return _allRoutesList;
         }
     }
 }

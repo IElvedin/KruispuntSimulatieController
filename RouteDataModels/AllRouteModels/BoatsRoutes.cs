@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace KruispuntSimulatieController.Route.Data.AllRouteModels
+namespace KruispuntSimulatieController.RouteDataModels.AllRouteModels
 {
     public class BoatsRoutes
     {
-        public List<int> BoatsRoutesList { get; set; } = new List<int>() { 41, 42 };
+        public List<int> boatsRoutesList { get; } = new() { 41, 42 };
     }
 }

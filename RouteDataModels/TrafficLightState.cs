@@ -1,15 +1,9 @@
-﻿using KruispuntSimulatieController.ProtocolModels;
-using KruispuntSimulatieController.Route.Data;
-using KruispuntSimulatieController.Route.Data.AllRouteModels;
-using KruispuntSimulatieController.RouteDataModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Text.Json;
-using System.Threading.Tasks;
+using KruispuntSimulatieController.ProtocolModels;
 using WebSocketSharp;
 
-namespace KruispuntSimulatieController
+namespace KruispuntSimulatieController.RouteDataModels
 {
     public sealed class TrafficLightState
     {
@@ -17,7 +11,9 @@ namespace KruispuntSimulatieController
 
         private static readonly object Padlock = new object();
 
-        private TrafficLightState() { }
+        private TrafficLightState()
+        {
+        }
 
         public static TrafficLightState GetInstance()
         {
@@ -31,16 +27,18 @@ namespace KruispuntSimulatieController
                     }
                 }
             }
+
             return _instance;
         }
 
         public void SendChangedStates(List<int> bestRouteCombination, WebSocket webSocket, string targetState)
         {
             List<List<int>> routesList = new AllRoutes().GetAllRoutes();
-            string eventType = "";
-            
-            foreach(int route in bestRouteCombination)
+            List<int> boatRoutes = new List<int>() { 41, 42 };
+
+            foreach (int route in bestRouteCombination)
             {
+                string eventType = "";
                 if (routesList[0].Contains(route))
                 {
                     eventType = "SET_AUTOMOBILE_ROUTE_STATE";
@@ -55,24 +53,26 @@ namespace KruispuntSimulatieController
                 }
                 else //(routesList[3].Contains(route))
                 {
-                    eventType = "SET_BOAT_ROUTE_STATE";
+                    continue;
                 }
-                string json = JsonSerializer.Serialize(FillChangedState(route, targetState, eventType));
-                webSocket.Send(json);
-            }            
+
+                if (!boatRoutes.Contains(route))
+                {
+                    string json = JsonSerializer.Serialize(FillChangedState(route, targetState, eventType));
+                    webSocket.Send(json);
+                }
+            }
         }
 
         private EventTypeRouteIdStateModel FillChangedState(int route, string state, string eventType)
         {
-            if (state == "ORANGE")
+            List<int> pedestrianRoutes = new AllRoutes().GetAllRoutes()[2];
+            if (pedestrianRoutes.Contains(route) && state == "ORANGE")
             {
-                if (route == 31 || route == 32 || route == 33 || route == 34 || route == 35 || route == 36 || route == 37 || route == 38)
-                {
-                    state = "BLINKING";
-                }
-            }            
+                state = "BLINKING";
+            }
 
-            EventTypeRouteIdStateModelData eventTypeStateModelData = new EventTypeRouteIdStateModelData()
+            EventTypeRouteIdStateModelData EventTypeRouteIdStateModelData = new EventTypeRouteIdStateModelData()
             {
                 routeId = route,
                 state = state
@@ -81,7 +81,7 @@ namespace KruispuntSimulatieController
             EventTypeRouteIdStateModel eventTypeRouteIdStateModel = new EventTypeRouteIdStateModel()
             {
                 eventType = eventType,
-                data = eventTypeStateModelData
+                data = EventTypeRouteIdStateModelData
             };
             return eventTypeRouteIdStateModel;
         }
