@@ -11,9 +11,7 @@ namespace KruispuntSimulatieController.RouteDataModels
 
         private static readonly object Padlock = new object();
 
-        private TrafficLightState()
-        {
-        }
+        private TrafficLightState() { }
 
         public static TrafficLightState GetInstance()
         {

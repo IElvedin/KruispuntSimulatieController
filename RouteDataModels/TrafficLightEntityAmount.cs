@@ -14,8 +14,6 @@ namespace KruispuntSimulatieController.RouteDataModels
             { 21, 0}, { 22, 0}, { 23, 0}, { 24, 0},
             //Pedestrians
             { 31, 0}, { 32, 0}, { 33, 0}, { 34, 0}, { 35, 0}, { 36, 0}, { 37, 0}, { 38, 0},
-            //Boats
-            { 41, 0}, { 42, 0}
         };
 
         private static TrafficLightEntityAmount _instance;

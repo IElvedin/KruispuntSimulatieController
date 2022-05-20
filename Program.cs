@@ -1,13 +1,8 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Timers;
-using WebSocketSharp;
+﻿using System;
 
 namespace KruispuntSimulatieController
 {
-    internal class Program
+    public class Program
     {
         private static void Main(string[] args)
         {

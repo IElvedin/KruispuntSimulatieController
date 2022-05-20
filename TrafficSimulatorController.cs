@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using KruispuntSimulatieController.ConnectionModels;
+using KruispuntSimulatieController.RouteDataModels.AllRouteModels;
 using WebSocketSharp;
 
 namespace KruispuntSimulatieController
 {
     public class TrafficSimulatorController
     {
-        private readonly string _sessionName = "elvedin";
+        private readonly string _sessionName = "alsjeblieft";
         private readonly string _url = "ws://keyslam.com:8080";
         private readonly WebSocket _webSocket;
         private bool _sessionActive;
@@ -127,10 +128,11 @@ namespace KruispuntSimulatieController
                     if (hData != null)
                     {
                         Console.WriteLine($"{hData.eventType}");
-                        if (hData.data.routeId == 41 || hData.data.routeId == 42)
+                        List<int> boatRoutes = new BoatsRoutes().boatsRoutesList;
+                        if (boatRoutes.Contains(hData.data.routeId))
                         {
-                            BridgeState.GetInstance().SetRouteId(hData.data.routeId);
-                            BridgeState.GetInstance().ChangeBoatRouteState(hData.eventType);
+                            BridgeLightState.GetInstance().SetRouteId(hData.data.routeId);
+                            BridgeLightState.GetInstance().ChangeBoatRouteState(hData.eventType);
                         }
                         else
                         {
@@ -145,7 +147,7 @@ namespace KruispuntSimulatieController
                     if (iData != null)
                     {
                         Console.WriteLine($"{iData.eventType}");
-                        BridgeState.GetInstance().ChangeBoatRouteEventType(iData.eventType);
+                        BridgeLightState.GetInstance().ChangeBoatRouteEventType(iData.eventType);
                     }
                     break;
                 
@@ -154,8 +156,8 @@ namespace KruispuntSimulatieController
                     if (jData != null)
                     {
                         Console.WriteLine($"{jData.eventType}");
-                        BridgeState.GetInstance().ChangeBoatRouteEventType(jData.eventType);
-                        BridgeState.GetInstance().ChangeBoatRouteState(jData.data.state);
+                        BridgeLightState.GetInstance().ChangeBoatRouteEventType(jData.eventType);
+                        BridgeLightState.GetInstance().ChangeBoatRouteState(jData.data.state);
                     }
                     break;
                 
@@ -164,8 +166,8 @@ namespace KruispuntSimulatieController
                     if (kData != null)
                     {
                         Console.WriteLine($"{kData.eventType}");
-                        BridgeState.GetInstance().ChangeBoatRouteEventType(kData.eventType);
-                        BridgeState.GetInstance().ChangeBoatRouteState(kData.data.state);
+                        BridgeLightState.GetInstance().ChangeBoatRouteEventType(kData.eventType);
+                        BridgeLightState.GetInstance().ChangeBoatRouteState(kData.data.state);
                     }
                     break;
                 
@@ -174,7 +176,7 @@ namespace KruispuntSimulatieController
                     if (lData != null)
                     {
                         Console.WriteLine($"{lData.eventType}");
-                        BridgeState.GetInstance().ChangeBoatRouteEventType(lData.eventType);
+                        BridgeLightState.GetInstance().ChangeBoatRouteEventType(lData.eventType);
                     }
                     break;
                 
@@ -185,16 +187,17 @@ namespace KruispuntSimulatieController
         private void BoatLoop()
         {
             BridgeInformation bridgeInformation = new BridgeInformation();
+            List<int> boatsRoutes = new BoatsRoutes().boatsRoutesList;
             while (_sessionActive)
             {
-                if (bridgeInformation.routeId == 0)
+                if (!boatsRoutes.Contains(bridgeInformation.routeId))
                 {
                     Thread.Sleep(10);
                 }
                 else
                 {
                     Console.WriteLine("Boat arrived. Bridge sequence starting");
-                    BridgeState.GetInstance().BridgeSequence(_webSocket);
+                    BridgeLightState.GetInstance().BridgeSequence(_webSocket);
                     if (bridgeInformation.routeId == 0)
                     {
                         Console.WriteLine("Boat passed. Bridge sequence finished");

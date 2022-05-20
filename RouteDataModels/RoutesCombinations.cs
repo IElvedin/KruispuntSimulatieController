@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace KruispuntSimulatieController.RouteDataModels
 {
-    public class RoutesCombinations
+    public sealed class RoutesCombinations
     {
         private readonly Dictionary<int, List<int>> _routes = new Dictionary<int, List<int>>()
         {

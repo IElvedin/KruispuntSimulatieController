@@ -6,11 +6,5 @@ namespace KruispuntSimulatieController.ProtocolModels
             public string eventType { get; set; }
             
             public string state { get; set; }
-
-
-            public int GetRouteId()
-            {
-                return routeId;
-            }
     }
 }

@@ -4,18 +4,17 @@ using WebSocketSharp;
 
 namespace KruispuntSimulatieController.RouteDataModels
 {
-    public sealed class BridgeState
+    public sealed class BridgeLightState
     {
-        private static BridgeState _instance;
+        private static BridgeLightState _instance;
         private readonly BridgeInformation _bridgeInformation;
         private static readonly object Padlock = new object();
 
-        private BridgeState()
+        private BridgeLightState()
         {
             _bridgeInformation = new BridgeInformation();
         }
-
-        public static BridgeState GetInstance()
+        public static BridgeLightState GetInstance()
         {
             if (_instance == null)
             {
@@ -23,19 +22,17 @@ namespace KruispuntSimulatieController.RouteDataModels
                 {
                     if (_instance == null)
                     {
-                        _instance = new BridgeState();
+                        _instance = new BridgeLightState();
                     }
                 }
             }
 
             return _instance;
         }
-
         public void SetRouteId(int routeId)
         {
             _bridgeInformation.routeId = routeId;
         }
-        
         public void ChangeBoatRouteEventType(string eventType)
         {
             if (_bridgeInformation.routeId != 0)
@@ -50,7 +47,6 @@ namespace KruispuntSimulatieController.RouteDataModels
                 _bridgeInformation.state = state;
             }
         }
-
         public void BridgeSequence(WebSocket webSocket)
         {
             string json = "";
@@ -188,7 +184,6 @@ namespace KruispuntSimulatieController.RouteDataModels
             #endregion
             webSocket.Send(json);
         }
-
         private EventTypeStateModel FillChangedBridgeState(string state, string eventType)
         {
             EventTypeStateModelData eventTypeStateModelData = new EventTypeStateModelData()
@@ -202,7 +197,6 @@ namespace KruispuntSimulatieController.RouteDataModels
             };
             return eventTypeStateModel;
         }
-
         private EventTypeRouteIdStateModel FillChangedBoatRouteState(int routeId, string state, string eventType)
         {
             EventTypeRouteIdStateModelData eventTypeRouteIdStateModelData = new EventTypeRouteIdStateModelData()
@@ -217,7 +211,6 @@ namespace KruispuntSimulatieController.RouteDataModels
             };
             return eventTypeRouteIdStateModel;
         }
-
         private EventTypeModel FillBridgeRequestEmpty(string eventType)
         {
             EventTypeModel eventTypeModel = new EventTypeModel()
