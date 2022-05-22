@@ -16,7 +16,6 @@ namespace KruispuntSimulatieController
         private readonly string _url = "ws://keyslam.com:8080";
         private readonly WebSocket _webSocket;
         private bool _sessionActive;
-        
         private Thread _mainThread;
         private Thread _boatThread;
 
@@ -60,9 +59,8 @@ namespace KruispuntSimulatieController
                         Console.WriteLine($"Invalid message:    {aData.data.receivedMessage}");
                         Console.WriteLine($"Invalid message:    {aData.data.validEventTypes}");
                     }
-
+                    
                     break;
-
                 case { } b when b.Contains("\"eventType\"" + ":" + "\"ERROR_NOT_PARSEABLE\""):
                     ErrorNotParseableModel bData = JsonSerializer.Deserialize<ErrorNotParseableModel>(e.Data);
                     if (bData != null)
@@ -73,7 +71,6 @@ namespace KruispuntSimulatieController
                     }
 
                     break;
-
                 case { } c when c.Contains("\"eventType\"" + ":" + "\"ERROR_MALFORMED_MESSAGE\""):
                     ErrorMalformedMessageModel cData = JsonSerializer.Deserialize<ErrorMalformedMessageModel>(e.Data);
                     if (cData != null)
@@ -88,7 +85,6 @@ namespace KruispuntSimulatieController
                     }
 
                     break;
-
                 case { } d when d.Contains("\"eventType\"" + ":" + "\"ERROR_INVALID_STATE\""):
                     ErrorInvalidStateModel dData = JsonSerializer.Deserialize<ErrorInvalidStateModel>(e.Data);
                     if (dData != null)
@@ -99,7 +95,6 @@ namespace KruispuntSimulatieController
                     }
 
                     break;
-
                 case { } f when f.Contains("\"eventType\"" + ":" + "\"SESSION_START\""):
                     Console.Clear();
                     EventTypeModel fData = JsonSerializer.Deserialize<EventTypeModel>(e.Data);
@@ -108,12 +103,11 @@ namespace KruispuntSimulatieController
                         Console.WriteLine($"{fData.eventType}");
                     }
                     _sessionActive = true;
-                    _mainThread = new Thread(MainLoop);
-                    _boatThread = new Thread(BoatLoop);
+                    _mainThread = new Thread(_mainLoop);
+                    _boatThread = new Thread(_boatLoop);
                     _mainThread.Start();
                     _boatThread.Start();
                     break;
-
                 case { } g when g.Contains("\"eventType\"" + " : " + "\"SESSION_STOP\""):
                     EventTypeModel gData = JsonSerializer.Deserialize<EventTypeModel>(e.Data);
                     if (gData != null)
@@ -122,7 +116,6 @@ namespace KruispuntSimulatieController
                     }
                     _sessionActive = false;
                     break;
-
                 case { } h when h.Contains("\"eventType\"" + ":" + "\"ENTITY_ENTERED_ZONE\""):
                     EventTypeRouteIdSensorIdModel hData = JsonSerializer.Deserialize<EventTypeRouteIdSensorIdModel>(e.Data);
                     if (hData != null)
@@ -141,7 +134,6 @@ namespace KruispuntSimulatieController
                         
                     }
                     break;
-                
                 case { } i when i.Contains("\"eventType\"" + ":" + "\"ACKNOWLEDGE_BRIDGE_ROAD_EMPTY\""):
                     EventTypeModel iData = JsonSerializer.Deserialize<EventTypeModel>(e.Data);
                     if (iData != null)
@@ -150,7 +142,6 @@ namespace KruispuntSimulatieController
                         BridgeLightState.GetInstance().ChangeBoatRouteEventType(iData.eventType);
                     }
                     break;
-                
                 case { } j when j.Contains("\"eventType\"" + ":" + "\"ACKNOWLEDGE_BARRIERS_STATE\""):
                     EventTypeStateModel jData = JsonSerializer.Deserialize<EventTypeStateModel>(e.Data);
                     if (jData != null)
@@ -160,7 +151,6 @@ namespace KruispuntSimulatieController
                         BridgeLightState.GetInstance().ChangeBoatRouteState(jData.data.state);
                     }
                     break;
-                
                 case { } k when k.Contains("\"eventType\"" + ":" + "\"ACKNOWLEDGE_BRIDGE_STATE\""):
                     EventTypeStateModel kData = JsonSerializer.Deserialize<EventTypeStateModel>(e.Data);
                     if (kData != null)
@@ -170,7 +160,6 @@ namespace KruispuntSimulatieController
                         BridgeLightState.GetInstance().ChangeBoatRouteState(kData.data.state);
                     }
                     break;
-                
                 case { } l when l.Contains("\"eventType\"" + ":" + "\"ACKNOWLEDGE_BRIDGE_WATER_EMPTY\""):
                     EventTypeStateModel lData = JsonSerializer.Deserialize<EventTypeStateModel>(e.Data);
                     if (lData != null)
@@ -179,22 +168,16 @@ namespace KruispuntSimulatieController
                         BridgeLightState.GetInstance().ChangeBoatRouteEventType(lData.eventType);
                     }
                     break;
-                
-                
             }
         }
 
-        private void BoatLoop()
+        private void _boatLoop()
         {
             BridgeInformation bridgeInformation = new BridgeInformation();
             List<int> boatsRoutes = new BoatsRoutes().boatsRoutesList;
             while (_sessionActive)
             {
-                if (!boatsRoutes.Contains(bridgeInformation.routeId))
-                {
-                    Thread.Sleep(10);
-                }
-                else
+                if (boatsRoutes.Contains(bridgeInformation.routeId))
                 {
                     Console.WriteLine("Boat arrived. Bridge sequence starting");
                     BridgeLightState.GetInstance().BridgeSequence(_webSocket);
@@ -206,16 +189,12 @@ namespace KruispuntSimulatieController
             }
         }
 
-        private void MainLoop()
+        private void _mainLoop()
         {
             while (_sessionActive)
             {
                 List<int> trafficLight = TrafficLightEntityAmount.GetInstance().GetPriorityRoutes();
-                if (trafficLight.Count == 0)
-                {
-                    Thread.Sleep(10);
-                }
-                else
+                if (trafficLight.Count != 0)
                 {
                     Console.WriteLine("Starting new traffic light cycle");
                     TrafficLightState.GetInstance().SendChangedStates(trafficLight, _webSocket, "GREEN");
