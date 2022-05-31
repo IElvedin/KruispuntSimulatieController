@@ -4,7 +4,6 @@ namespace KruispuntSimulatieController.ProtocolModels
     {
             public int routeId { get; set; }
             public string eventType { get; set; }
-            
             public string state { get; set; }
     }
 }
